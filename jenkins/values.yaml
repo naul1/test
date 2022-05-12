@@ -1,0 +1,113 @@
+Master:
+  Name: jenkins-master
+  Image: "jenkins/jenkins"
+  ImageTag: "lts"
+  ImagePullPolicy: "Always"
+  Component: "jenkins-master"
+  NumExecutors: 0
+  UseSecurity: true
+  HostNetworking: false
+  AdminUser: admin
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "256Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2048Mi"
+  UsePodSecurityContext: true
+  ServicePort: 8080
+  ServiceType: NodePort
+  ServiceAnnotations: {}
+  DeploymentLabels:
+  ServiceLabels: {}
+  HealthProbes: true
+  HealthProbesLivenessTimeout: 90
+  HealthProbesReadinessTimeout: 60
+  HealthProbeReadinessPeriodSeconds: 10
+  HealthProbeLivenessFailureThreshold: 12
+  SlaveListenerPort: 50000
+  DisabledAgentProtocols:
+    - JNLP-connect
+    - JNLP2-connect
+  CSRF:
+    DefaultCrumbIssuer:
+      Enabled: true
+      ProxyCompatability: true
+  CLI: false
+  SlaveListenerServiceType: ClusterIP
+  SlaveListenerServiceAnnotations: {}
+  LoadBalancerSourceRanges:
+  - 0.0.0.0/0
+  ExtraPorts:
+  InstallPlugins:
+    - kubernetes:1.14.0
+    - workflow-job:2.31
+    - workflow-aggregator:2.6
+    - credentials-binding:1.17
+    - git:3.9.1
+  InitScripts:
+  CustomConfigMap: false
+  OverwriteConfig: false
+  NodeSelector: {}
+  Tolerations: {}
+  PodAnnotations: {}
+  Ingress:
+    ApiVersion: extensions/v1beta1
+    Annotations: {}
+    TLS:
+  AdditionalConfig: {}
+Agent:
+  Enabled: true
+  Image: jenkins/jnlp-slave
+  ImageTag: 3.27-1
+  CustomJenkinsLabels: []
+  Component: "jenkins-slave"
+  Privileged: false
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+  AlwaysPullImage: false
+  PodRetention: Never
+  volumes:
+  NodeSelector: {}
+Persistence:
+  Enabled: true
+  Annotations: {}
+  AccessMode: ReadWriteOnce
+  Size: 8Gi
+  volumes:
+  mounts:
+NetworkPolicy:
+  Enabled: false
+  ApiVersion: networking.k8s.io/v1
+rbac:
+  install: true
+  serviceAccountName: default
+  roleRef: cluster-admin
+  roleKind: ClusterRole
+  roleBindingKind: ClusterRoleBinding
+backup:
+  enabled: false
+  schedule: "0 2 * * *"
+  annotations:
+    iam.amazonaws.com/role: jenkins
+  image:
+    repository: nuvo/kube-tasks
+    tag: 0.1.2
+  extraArgs: []
+  env:
+  - name: AWS_REGION
+    value: us-east-1
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 1
+    limits:
+      memory: 1Gi
+      cpu: 1
+  destination: s3://jenkins-data-test-sky/backup
