@@ -1,0 +1,19 @@
+kubectl get nodes
+kubectl create namespace testing
+kubectl apply -f grafana.yaml -n testing
+kubectl get all -n testing
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl create namespace prometheus
+kubectl create namespace grafana
+helm repo add prometheus-community
+
+helm upgrade -i prometheus prometheus-community/prometheus \
+  --namespace prometheus \
+  --set alertmanager.persistentVolume.storageClass="gp2",server.persistentVolume.storageClass="gp2"
+
+kubectl port-forward -n prometheus deploy/prometheus-server 9090:9090
+kubectl port-forward -n grafana deploy/grafana 3000:3000
+
+Open URL in browser: http://localhost:3000/
+
+Add data source by navigating to the bottom left in the configuration > Data Sources > select Prometheus 
